@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>公司名称 · 官方网站</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f5f4f0;
+      color: #242824;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      line-height: 1.7;
+    }
+
+    header {
+      padding: 20px 6%;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    nav {
+      display: flex;
+      gap: 24px;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: auto;
+      padding: 80px 6%;
+    }
+
+    h1 {
+      font-size: clamp(32px, 6vw, 60px);
+      line-height: 1.2;
+    }
+
+    section {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid #ccc;
+    }
+
+    .button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #283d34;
+      color: white;
+    }
+
+    footer {
+      padding: 24px 6%;
+      border-top: 1px solid #ccc;
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>公司名称 / COMPANY NAME</strong>
+    <nav aria-label="主导航">
+      <a href="#about">关于我们</a>
+      <a href="#operations">业务领域</a>
+      <a href="#archives">档案中心</a>
+    </nav>
+  </header>
+
+  <main>
+    <p>研究 · 工程 · 收容管理</p>
+    <h1>理解未知，建立秩序。</h1>
+    <p>我们为特殊环境与异常事件提供研究、工程及长期管理服务。</p>
+    <a class="button" href="#about">了解我们的工作 →</a>
+
+    <section id="about">
+      <h2>关于我们</h2>
+      <p>公司负责异常现象的调查、评估与收容设施运营。</p>
+    </section>
+
+    <section id="operations">
+      <h2>业务领域</h2>
+      <p>现场调查 / 收容工程 / 风险评估 / 设施维护</p>
+    </section>
+
+    <section id="archives">
+      <h2>档案中心</h2>
+      <p>收容项目档案正在整理中。</p>
+    </section>
+  </main>
+
+  <footer>本网站为虚构世界观创作项目。</footer>
+</body>
+</html>
