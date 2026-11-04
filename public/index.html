@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101411"><title>万业携生收容公司 · 员工终端</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main id="app" class="shell">
+    <section class="welcome" id="welcome">
+      <div class="welcome-top"><span class="signal"><i></i> INTERNAL NETWORK</span><span>WY / EMPLOYEE PORTAL</span></div>
+      <div class="hero"><div class="rule"></div><div class="mark" aria-label="公司标志占位"><span></span><b>W</b></div><div class="rule"></div></div>
+      <p class="eyebrow">万业携生收容公司</p><h1>每一份记录，<br>都在此处留存。</h1>
+      <p class="intro">员工内部信息终端 <span>·</span> 档案 / 组织 / 活动</p>
+      <button class="primary enter" id="enter">进入员工通道 <span>→</span></button>
+      <div class="welcome-foot"><span>ACCESS REQUIRES AUTHORIZATION</span><span>EST. 20XX</span></div>
+    </section>
+    <section class="login-card hidden" id="loginCard">
+      <button class="back" id="back">← 返回入口</button><div class="mini-mark">W</div>
+      <p class="eyebrow">EMPLOYEE IDENTIFICATION</p><h2>员工登录</h2><p class="muted">请输入已登记的员工账号。</p>
+      <form id="loginForm"><label>员工账号<input name="username" autocomplete="username" required placeholder="请输入账号"></label>
+        <label>登录密码<input name="password" type="password" autocomplete="current-password" required placeholder="请输入密码"></label>
+        <p class="error" id="error" role="alert"></p><button class="primary" type="submit">验证身份 <span>→</span></button></form>
+      <p class="fine">员工账号由公司管理员登记。尚未开通账号？请联系管理员。</p>
+    </section>
+    <section class="dashboard hidden" id="dashboard">
+      <header class="app-header"><div class="brand"><div class="brand-mark">W</div><div><b>万业携生收容公司</b><small>员工内部终端 / INTERNAL</small></div></div><button class="logout" id="logout">退出登录</button></header>
+      <div class="portal-layout">
+        <aside class="sidebar" id="sidebar">
+          <div class="side-heading"><span class="eyebrow">导航 / NAVIGATION</span><button class="small-action" id="sidebarToggle" aria-label="收起侧边栏">收起</button></div>
+          <nav class="tabs" aria-label="主导航">
+            <button class="tab active" data-tab="files">公司档案</button><button class="tab" data-tab="activities">互动玩法</button>
+            <button class="tab" data-tab="forum">匿名论坛</button><button class="tab" data-tab="notice">内部公告</button>
+            <button class="tab" data-tab="profile">个人主页</button><button class="tab hidden" data-tab="admin">管理工作台</button>
+          </nav>
+          <section class="music-box"><p class="eyebrow">音乐盒 / MUSIC</p><div id="musicTitle" class="music-title">还没有音乐</div>
+            <audio id="musicAudio" preload="none"></audio><div class="music-controls"><button id="musicPrev" aria-label="上一首">|◀</button><button id="musicPlay" aria-label="播放或暂停">▶</button><button id="musicNext" aria-label="下一首">▶|</button></div>
+            <label class="music-volume">音量 <input id="musicVolume" type="range" min="0" max="1" step="0.05" value="0.35"></label><p class="fine">播放需要你手动点击；曲目由管理员维护。</p>
+          </section>
+          <div class="sidebar-foot">数据保存在公司服务器</div>
+        </aside>
+        <main class="portal-main">
+          <div class="welcome-banner"><div><p class="eyebrow">EMPLOYEE PORTAL · ACCESS GRANTED</p><h2 id="greeting">欢迎回来</h2><p id="employeeMeta" class="muted"></p></div><div class="access-stamp"><span>身份核验</span><b>已通过</b><small>AUTHORIZED</small></div></div>
+          <div id="panel" aria-live="polite"></div>
+          <footer class="app-footer"><span>万业携生收容公司 · 内部资料</span><span>ACCESS LOGGED</span></footer>
+        </main>
+      </div>
+    </section>
+  </main>
+  <script src="/app.js" defer></script>
+</body>
+</html>
