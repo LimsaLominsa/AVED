@@ -15,7 +15,7 @@ cp .env.example .env
 mkdir -p data
 ```
 
-编辑 `.env`：把管理员账号和至少 12 位的唯一密码改成自己的值，并设置至少 32 个字符的 `SESSION_SECRET`。然后启动：
+编辑 `.env`：把管理员账号和至少 6 位的密码改成自己的值，并设置至少 32 个字符的 `SESSION_SECRET`。然后启动：
 
 ```sh
 docker compose up -d --build

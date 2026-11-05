@@ -241,8 +241,14 @@ const server = createServer(async (req, res) => {
       const attempt = attempts.get(ip) || { count:0, until:now + 10 * 60 * 1000 };
       if (attempt.until < now) { attempt.count = 0; attempt.until = now + 10 * 60 * 1000; }
       if (attempt.count >= 10) return send(res, 429, { error:'尝试次数过多，请稍后再试。' });
-      const { username, password } = await readBody(req);
-      const employee = typeof username === 'string' ? db.prepare('SELECT id,password_hash,enabled FROM employees WHERE username=?').get(username.trim()) : null;
+      const { identifier, username, password } = await readBody(req);
+      const loginName = typeof identifier === 'string' ? identifier.trim() : (typeof username === 'string' ? username.trim() : '');
+      let employee = loginName ? db.prepare('SELECT id,password_hash,enabled FROM employees WHERE username=?').get(loginName) : null;
+      if (!employee && loginName) {
+        const nameMatches = db.prepare('SELECT id,password_hash,enabled FROM employees WHERE display_name=? ORDER BY id').all(loginName);
+        if (nameMatches.length === 1) employee = nameMatches[0];
+        else if (nameMatches.length > 1) return send(res,400,{error:'存在同名员工，请使用唯一用户名登录。'});
+      }
       const valid = employee && typeof password === 'string' && password.length <= 200 && verifyPassword(password, employee.password_hash) && employee.enabled === 1;
       if (!valid) { attempt.count++; attempts.set(ip, attempt); return send(res, 401, { error:'账号或密码不正确，或该员工账号尚未启用。' }); }
       attempts.delete(ip);
@@ -489,7 +495,7 @@ const server = createServer(async (req, res) => {
     if (url.pathname === '/api/admin/employees' && req.method === 'POST') {
       const admin = requireAdmin(req,res); if (!admin) return;
       const { username,password,displayName,qqNumber,department,role,initialBalance } = await readBody(req);
-      if (!validText(username,40) || !validText(password,200) || password.length < 12 || !validText(displayName,80)) return send(res,400,{error:'请填写账号、姓名，并设置至少 12 位密码。'});
+      if (!validText(username,40) || typeof password !== 'string' || password.length < 6 || !validText(displayName,80)) return send(res,400,{error:'请填写唯一用户名、员工姓名，并设置至少 6 位密码。'});
       if(initialBalance!==undefined&&(!Number.isSafeInteger(initialBalance)||initialBalance<0||initialBalance>100000000))return send(res,400,{error:'初始余额必须是 0 到 100,000,000 之间的整数。'});
       try {
         const result = db.prepare('INSERT INTO employees (username,password_hash,display_name,qq_number,department,role) VALUES (?,?,?,?,?,?)')
@@ -506,13 +512,21 @@ const server = createServer(async (req, res) => {
       if(!Number.isInteger(employeeId)||!validText(displayName,80)||typeof department!=='string'||department.length>80||typeof enabled!=='boolean')return send(res,400,{error:'员工姓名、部门或启用状态无效。'});
       const qq=qqNumber==null||qqNumber===''?null:(validText(qqNumber,30)?qqNumber.trim():undefined);
       if(qq===undefined)return send(res,400,{error:'QQ 号最多 30 个字符。'});
-      if(password!==undefined&&password!==''&&(typeof password!=='string'||password.length<12||password.length>200))return send(res,400,{error:'新密码至少 12 位，最多 200 位；不修改密码请留空。'});
+      if(password!==undefined&&password!==''&&(typeof password!=='string'||password.length<6))return send(res,400,{error:'新密码至少 6 位；不修改密码请留空。'});
       try{
         const result=db.prepare('UPDATE employees SET display_name=?,qq_number=?,department=?,enabled=? WHERE id=?').run(displayName.trim(),qq,department.trim(),enabled?1:0,employeeId);
         if(!result.changes)return send(res,404,{error:'员工账号不存在。'});
         if(typeof password==='string'&&password)db.prepare('UPDATE employees SET password_hash=? WHERE id=?').run(hashPassword(password),employeeId);
         return send(res,200,{ok:true});
       }catch{return send(res,409,{error:'QQ 号已被其他员工使用，请检查后重试。'});}
+    }
+    if (url.pathname.startsWith('/api/admin/employees/') && req.method === 'DELETE') {
+      if (!requireAdmin(req,res)) return;
+      const employeeId = Number(url.pathname.split('/').at(-1));
+      if (!Number.isInteger(employeeId) || employeeId < 1) return send(res,400,{error:'员工编号无效。'});
+      const result = db.prepare('DELETE FROM employees WHERE id=?').run(employeeId);
+      if (!result.changes) return send(res,404,{error:'员工账号不存在。'});
+      return send(res,200,{ok:true});
     }
     if (url.pathname.startsWith('/api/admin/employees/') && url.pathname.endsWith('/balance') && req.method === 'POST') {
       const admin = requireAdmin(req,res); if (!admin) return;

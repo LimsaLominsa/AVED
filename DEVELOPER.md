@@ -86,7 +86,7 @@ mkdir -p data
 4. 修改 `.env`（至少）
 
 - `BOOTSTRAP_ADMIN_USERNAME`
-- `BOOTSTRAP_ADMIN_PASSWORD`（>=12 位）
+- `BOOTSTRAP_ADMIN_PASSWORD`（>=6 位）
 - `SESSION_SECRET`（建议 >= 32 字符随机串）
 
 ### 4.2 启动服务（Docker）

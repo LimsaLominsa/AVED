@@ -6,7 +6,7 @@
 
 | 方法 | 路径 | 用途 |
 | --- | --- | --- |
-| POST | `/api/login` | 账号密码登录 |
+| POST | `/api/login` | 使用唯一用户名或员工姓名和密码登录 |
 | POST | `/api/logout` | 退出并撤销会话 |
 | GET | `/api/me` | 当前员工和服务器计算的余额 |
 | GET / PUT | `/api/profile` | 读取/保存匿名名、简介和头像 |
@@ -40,7 +40,7 @@
 | DELETE | `/api/admin/forum/threads/{id}`、`/api/admin/forum/replies/{id}` | 永久删除匿名主题或回复；删除主题会同时删除其回复 |
 | GET / POST / DELETE | `/api/admin/music`、`/api/admin/music/{id}` | 查看 / 添加 / 删除音乐曲目 |
 
-新增员工字段：`username`、`password`（至少 12 位）、`displayName`、`qqNumber`、`department`、可选 `initialBalance`。密码只保存 PBKDF2 哈希。QQ 号仅在管理员名册接口返回。
+新增员工字段：`username`（唯一登录用户名）、`password`（至少 6 位）、`displayName`（员工姓名）、`qqNumber`、`department`、可选 `initialBalance`。密码只保存 PBKDF2 哈希。QQ 号仅在管理员名册接口返回。登录时可以填写唯一用户名或员工姓名；如员工姓名重复，则使用唯一用户名登录。
 
 管理员发言审核接口返回匿名名与真人映射字段：`employeeId`、`username`、`displayName`、`department`。`/api/admin/speech-records` 额外支持筛选参数：`employeeId`、`sourceType`（`comment`/`thread`/`reply`）、`username`（模糊匹配）、`from`、`to`（`YYYY-MM-DD`）和 `keyword`，可选 `limit`（1-500，默认 200）。
 
