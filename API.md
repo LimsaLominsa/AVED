@@ -34,12 +34,15 @@
 | POST / DELETE | `/api/admin/dossiers`、`/api/admin/dossiers/{id}` | 新增 / 删除档案 |
 | POST / DELETE | `/api/admin/announcements`、`/api/admin/announcements/{id}` | 发布 / 删除公告 |
 | DELETE | `/api/admin/posts/{id}` | 永久删除公告下的匿名留言 |
-| GET | `/api/admin/posts` | 查看完整的公告匿名留言审核队列 |
-| GET | `/api/admin/forum` | 查看完整的匿名主题和回复审核队列 |
+| GET | `/api/admin/posts` | 查看完整的公告匿名留言审核队列（含发言员工映射） |
+| GET | `/api/admin/forum` | 查看完整的匿名主题和回复审核队列（含发言员工映射） |
+| GET | `/api/admin/speech-records` | 统一查询发言审计记录，可按员工、来源、日期和关键词筛选 |
 | DELETE | `/api/admin/forum/threads/{id}`、`/api/admin/forum/replies/{id}` | 永久删除匿名主题或回复；删除主题会同时删除其回复 |
 | GET / POST / DELETE | `/api/admin/music`、`/api/admin/music/{id}` | 查看 / 添加 / 删除音乐曲目 |
 
 新增员工字段：`username`、`password`（至少 12 位）、`displayName`、`qqNumber`、`department`、可选 `initialBalance`。密码只保存 PBKDF2 哈希。QQ 号仅在管理员名册接口返回。
+
+管理员发言审核接口返回匿名名与真人映射字段：`employeeId`、`username`、`displayName`、`department`。`/api/admin/speech-records` 额外支持筛选参数：`employeeId`、`sourceType`（`comment`/`thread`/`reply`）、`username`（模糊匹配）、`from`、`to`（`YYYY-MM-DD`）和 `keyword`，可选 `limit`（1-500，默认 200）。
 
 ## 服务端结算和存储
 

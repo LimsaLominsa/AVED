@@ -45,3 +45,5 @@ docker compose up -d --build
 安装 Node.js 24 或更新版本后，可使用 `启动预览.bat`，再打开 `http://127.0.0.1:4173`。本机演示账号仅用于本地预览，不适用于正式服务器。
 
 API 路径和请求字段见 [API.md](API.md)。美工可编辑 `public/` 下的 HTML、CSS 和 JavaScript；只要保留 API 路径和字段约定，服务器数据接口就能继续使用。
+
+开发维护说明见 [DEVELOPER.md](DEVELOPER.md)。

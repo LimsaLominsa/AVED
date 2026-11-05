@@ -205,6 +205,7 @@ const requireAdmin = (req, res) => {
   return employee;
 };
 const validText = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.trim().length <= max;
+const validDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
 const balanceFor = employeeId => db.prepare('SELECT COALESCE(SUM(delta),0) AS balance FROM balance_ledger WHERE employee_id=?').get(employeeId).balance;
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Shanghai' }).format(new Date());
 const secureRoll = (seedHex, range) => {
@@ -372,15 +373,70 @@ const server = createServer(async (req, res) => {
     }
     if (url.pathname === '/api/admin/forum' && req.method === 'GET') {
       if(!requireAdmin(req,res))return;
-      const items=db.prepare(`SELECT 'thread' AS itemType,f.id,f.title,f.body,f.anonymous_name AS anonymousName,f.status,f.created_at AS createdAt,NULL AS parentTitle
-        FROM forum_threads f UNION ALL SELECT 'reply',r.id,t.title,r.body,r.anonymous_name,r.status,r.created_at,t.title
-        FROM forum_replies r JOIN forum_threads t ON t.id=r.thread_id ORDER BY createdAt DESC`).all();
+      const items=db.prepare(`SELECT 'thread' AS itemType,f.id,f.title,f.body,f.anonymous_name AS anonymousName,f.status,f.created_at AS createdAt,
+        f.employee_id AS employeeId,e.username,e.display_name AS displayName,e.department,NULL AS parentTitle
+        FROM forum_threads f JOIN employees e ON e.id=f.employee_id
+        UNION ALL
+        SELECT 'reply',r.id,t.title,r.body,r.anonymous_name,r.status,r.created_at,
+        r.employee_id,e.username,e.display_name,e.department,t.title
+        FROM forum_replies r JOIN forum_threads t ON t.id=r.thread_id JOIN employees e ON e.id=r.employee_id ORDER BY createdAt DESC`).all();
       return send(res,200,{items});
     }
     if (url.pathname === '/api/admin/posts' && req.method === 'GET') {
       if(!requireAdmin(req,res))return;
-      const items=db.prepare(`SELECT p.id,'comment' AS itemType,a.title,p.body,p.anonymous_name AS anonymousName,p.status,p.created_at AS createdAt
-        FROM posts p JOIN announcements a ON a.id=p.announcement_id ORDER BY p.id DESC`).all();
+      const items=db.prepare(`SELECT p.id,'comment' AS itemType,a.title,p.body,p.anonymous_name AS anonymousName,p.status,p.created_at AS createdAt,
+        p.employee_id AS employeeId,e.username,e.display_name AS displayName,e.department
+        FROM posts p JOIN announcements a ON a.id=p.announcement_id JOIN employees e ON e.id=p.employee_id ORDER BY p.id DESC`).all();
+      return send(res,200,{items});
+    }
+    if (url.pathname === '/api/admin/speech-records' && req.method === 'GET') {
+      if(!requireAdmin(req,res))return;
+      const employeeIdParam = url.searchParams.get('employeeId');
+      const employeeId = employeeIdParam == null ? null : Number(employeeIdParam);
+      if (employeeIdParam != null && (!Number.isInteger(employeeId) || employeeId < 1)) return send(res,400,{error:'employeeId 必须是正整数。'});
+      const sourceType = url.searchParams.get('sourceType');
+      if (sourceType != null && !['comment','thread','reply'].includes(sourceType)) return send(res,400,{error:'sourceType 仅支持 comment/thread/reply。'});
+      const usernameParam = url.searchParams.get('username');
+      const username = usernameParam == null ? null : usernameParam.trim();
+      if (username != null && username.length > 40) return send(res,400,{error:'username 最多 40 个字符。'});
+      const from = url.searchParams.get('from');
+      if (from != null && !validDate(from)) return send(res,400,{error:'from 日期格式应为 YYYY-MM-DD。'});
+      const to = url.searchParams.get('to');
+      if (to != null && !validDate(to)) return send(res,400,{error:'to 日期格式应为 YYYY-MM-DD。'});
+      const keywordParam = url.searchParams.get('keyword');
+      const keyword = keywordParam == null ? null : keywordParam.trim();
+      if (keyword != null && keyword.length > 120) return send(res,400,{error:'keyword 最多 120 个字符。'});
+      const limitParam = Number(url.searchParams.get('limit') || 200);
+      if (!Number.isInteger(limitParam) || limitParam < 1 || limitParam > 500) return send(res,400,{error:'limit 必须是 1 到 500 之间的整数。'});
+      const keywordLike = keyword ? `%${keyword}%` : null;
+      const usernameLike = username ? `%${username}%` : null;
+      const items = db.prepare(`SELECT * FROM (
+        SELECT 'comment' AS sourceType,p.id AS sourceId,p.created_at AS createdAt,p.anonymous_name AS anonymousName,
+          p.body,NULL AS title,a.title AS parentTitle,p.employee_id AS employeeId,e.username,e.display_name AS displayName,e.department
+        FROM posts p JOIN announcements a ON a.id=p.announcement_id JOIN employees e ON e.id=p.employee_id
+        UNION ALL
+        SELECT 'thread',f.id,f.created_at,f.anonymous_name,f.body,f.title,NULL,f.employee_id,e.username,e.display_name,e.department
+        FROM forum_threads f JOIN employees e ON e.id=f.employee_id
+        UNION ALL
+        SELECT 'reply',r.id,r.created_at,r.anonymous_name,r.body,NULL,t.title,r.employee_id,e.username,e.display_name,e.department
+        FROM forum_replies r JOIN forum_threads t ON t.id=r.thread_id JOIN employees e ON e.id=r.employee_id
+      ) records
+      WHERE (? IS NULL OR employeeId = ?)
+        AND (? IS NULL OR sourceType = ?)
+        AND (? IS NULL OR username LIKE ?)
+        AND (? IS NULL OR date(createdAt) >= date(?))
+        AND (? IS NULL OR date(createdAt) <= date(?))
+        AND (? IS NULL OR (anonymousName LIKE ? OR body LIKE ? OR COALESCE(title,'') LIKE ? OR COALESCE(parentTitle,'') LIKE ? OR displayName LIKE ? OR username LIKE ?))
+      ORDER BY createdAt DESC
+      LIMIT ?`).all(
+        employeeId, employeeId,
+        sourceType, sourceType,
+        usernameLike, usernameLike,
+        from, from,
+        to, to,
+        keywordLike, keywordLike, keywordLike, keywordLike, keywordLike, keywordLike, keywordLike,
+        limitParam
+      );
       return send(res,200,{items});
     }
     if (url.pathname.startsWith('/api/admin/forum/threads/') && req.method === 'DELETE') {
