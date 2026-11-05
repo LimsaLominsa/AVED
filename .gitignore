@@ -1,0 +1,10 @@
+.env
+.env.*
+
+data/
+*.db
+*.db-wal
+*.db-shm
+
+*.tar.gz
+
